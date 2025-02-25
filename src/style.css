@@ -45,7 +45,7 @@
   }
 }
 
-/* RECOMMENDED WEBAPP STYLES */
+/* RECOMMENDED WebApp STYLES */
 /* =========================================== */
 
 * {
@@ -53,6 +53,7 @@
   -webkit-user-select: none !important;
   -webkit-touch-callout: none !important;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 /* DEFAULT STYLING NONE TRANSITION-API-RELATED */
