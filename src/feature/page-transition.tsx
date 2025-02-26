@@ -1,5 +1,5 @@
 import React, {createContext, MouseEvent, ReactNode, useContext, useState} from 'react';
-import {Link, useNavigate} from 'react-router-dom';
+import {Link, useNavigate, type To} from 'react-router-dom';
 
 interface TransitionContextType {
     setTransition: (transition: 'push' | 'pop') => void;
@@ -63,21 +63,18 @@ type TransitioningLinkProps = {
     children: ReactNode;
 } & React.AnchorHTMLAttributes<HTMLAnchorElement>;
 
-export const PageTransition = ({to, transition, children, ...props}: TransitioningLinkProps) => {
+export const PageTransition = ({to: toProp, transition, children, ...props}: TransitioningLinkProps) => {
     const {setTransition} = useContext(TransitionContext);
     const navigate = useNavigate();
     const viewTransitionSupported = Boolean(document.startViewTransition);
+    // -1 is equivalent to hitting the back button;
+    // @see: https://reactrouter.com/6.28.1/hooks/use-navigate#usenavigate
+    const to = toProp === '-1' ? -1 as To : toProp;
 
     const handleNavigation = (event: MouseEvent<HTMLAnchorElement>) => {
         event.preventDefault();
 
         setTransition(transition);
-
-        if (to === '-1') {
-            // -1 is equivalent to hitting the back button;
-            // @see: https://reactrouter.com/6.28.1/hooks/use-navigate#usenavigate
-            to = -1;
-        }
 
         if (viewTransitionSupported) {
             document.startViewTransition(() => {
@@ -86,6 +83,7 @@ export const PageTransition = ({to, transition, children, ...props}: Transitioni
             });
             return;
         }
+
         navigate(to);
     };
 
