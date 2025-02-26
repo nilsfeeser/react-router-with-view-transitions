@@ -63,7 +63,7 @@ type TransitioningLinkProps = {
     children: ReactNode;
 } & React.AnchorHTMLAttributes<HTMLAnchorElement>;
 
-export const PageTransition = ({to: toProp, transition, children, ...props}: TransitioningLinkProps) => {
+export const TransitioningLink = ({to: toProp, transition, children, ...props}: TransitioningLinkProps) => {
     const {setTransition} = useContext(TransitionContext);
     const navigate = useNavigate();
     const viewTransitionSupported = Boolean(document.startViewTransition);
@@ -73,9 +73,7 @@ export const PageTransition = ({to: toProp, transition, children, ...props}: Tra
 
     const handleNavigation = (event: MouseEvent<HTMLAnchorElement>) => {
         event.preventDefault();
-
         setTransition(transition);
-
         if (viewTransitionSupported) {
             document.startViewTransition(() => {
                 navigate(to);
@@ -83,7 +81,6 @@ export const PageTransition = ({to: toProp, transition, children, ...props}: Tra
             });
             return;
         }
-
         navigate(to);
     };
 
