@@ -172,11 +172,11 @@ body {
         display: flex;
         column-gap: 15px;
 
-        & div:nth-child(1) {
+        & > div:nth-child(1) {
             flex-grow: 1;
         }
 
-        & div:nth-child(2) {
+        & > div:nth-child(2) {
             flex-grow: 0.5;
         }
 
