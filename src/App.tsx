@@ -118,6 +118,29 @@ const ProductImage = ({src, alt}: { src: string; alt?: string }) => {
     );
 };
 
+const ProductShimmerView = () => {
+    return (
+        <div className="product-shimmer-view">
+            <div>
+                <em></em>
+                <em></em>
+                <em></em>
+                <em></em>
+                <em></em>
+                <em></em>
+            </div>
+            <div>
+                <em></em>
+                <em></em>
+                <em></em>
+                <span></span>
+                <span></span>
+                <em></em>
+            </div>
+        </div>
+    );
+};
+
 const Layout = () => {
     return (
         <div>
@@ -173,7 +196,8 @@ const Page2 = () => {
                             to={`/page3/${index}`}
                             transition="push"
                         >
-                            ➔ Item Nr {index + 1}
+                            <h5>➔ Item Nr {index + 1}</h5>
+                            <ProductShimmerView></ProductShimmerView>
                         </TransitioningLink>
                     </li>
                 ))}
