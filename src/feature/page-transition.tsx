@@ -1,9 +1,9 @@
-import React, {createContext, MouseEvent, ReactNode, useContext, useState} from "react";
-import {Link, useNavigate} from "react-router-dom";
+import React, {createContext, MouseEvent, ReactNode, useContext, useState} from 'react';
+import {Link, useNavigate} from 'react-router-dom';
 
 interface TransitionContextType {
-    setTransition: (transition: "push" | "pop") => void;
-    transition: "push" | "pop";
+    setTransition: (transition: 'push' | 'pop') => void;
+    transition: 'push' | 'pop';
 }
 
 const TransitionContext = createContext<TransitionContextType>(
@@ -11,7 +11,7 @@ const TransitionContext = createContext<TransitionContextType>(
 );
 
 export function TransitionProvider({children}: { children: ReactNode }) {
-    const [transition, setTransition] = useState<"push" | "pop">('push');
+    const [transition, setTransition] = useState<'push' | 'pop'>('push');
 
     return (
         <TransitionContext.Provider value={{transition, setTransition}}>
@@ -27,7 +27,7 @@ const TransitionStyles = () => {
     const speed = 350;
     const animationDelay = 20;
 
-    const TRANSITION_STYLES: Record<"push" | "pop", string> = {
+    const TRANSITION_STYLES: Record<'push' | 'pop', string> = {
         push: `
       ::view-transition-old(root) {
         animation: ${speed}ms ease both push-move-out-left; 
@@ -59,7 +59,7 @@ const TransitionStyles = () => {
 
 type TransitioningLinkProps = {
     to: string;
-    transition: "push" | "pop";
+    transition: 'push' | 'pop';
     children: ReactNode;
 } & React.AnchorHTMLAttributes<HTMLAnchorElement>;
 
