@@ -30,7 +30,7 @@ const Page1 = () => {
                 <strong>
                     Some text you can not select as this is also the default behaviour on
                     native apps.
-                </strong>{' '}
+                </strong>
                 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy
                 eirmod
             </p>
@@ -141,7 +141,7 @@ const Image = ({src, alt, className}: { src: string; alt?: string; className?: s
 
 const DummyProductView = () => {
     return (
-        <div className="product-shimmer-view">
+        <div className="dummy-product-view">
             <div>
                 <em></em>
                 <em></em>

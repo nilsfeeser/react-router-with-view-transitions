@@ -170,7 +170,7 @@ body {
         }
     }
 
-    .product-shimmer-view {
+    .dummy-product-view {
         display: flex;
         column-gap: 15px;
 
