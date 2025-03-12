@@ -1,4 +1,4 @@
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useMemo} from 'react';
 import './style.css';
 import {
     Outlet,
@@ -9,6 +9,7 @@ import {
 import {useImageCache} from "./feature/image-cache.tsx";
 import {TransitionProvider, TransitioningLink} from "./feature/page-transition.tsx";
 import {ImageCacheProvider} from "./feature/image-cache.tsx";
+import { BottomSheet } from "./feature/bottom-sheet/bottom-sheet.tsx";
 
 const Layout = () => {
     return (
@@ -81,6 +82,21 @@ const Page2 = () => {
 
 const Page3 = () => {
     const {productId} = useParams<{ productId: string }>();
+
+    const [isOpen, setIsOpen] = useState(false);
+
+    const loremIpsum = useMemo(() => {
+        return Array.from({length: 500}, () => Math.random().toString(36).substring(2, 7)).join(' ');
+    }, []);
+
+    const openSheet = () => {
+        setIsOpen(true);
+    };
+
+    const dismissBottomSheet = () => {
+        setIsOpen(false);
+    };
+
     return (
         <div className="page page3">
             <h1>Page3</h1>
@@ -89,6 +105,24 @@ const Page3 = () => {
             <TransitioningLink to="-1" transition="pop" className="button">
                 zurück
             </TransitioningLink>
+
+            <h1>This page should be scrollable so here is some product describing text</h1>
+            <p>{loremIpsum.split(' ').slice(0, 100).join(' ')}</p>
+
+            <button type="button" className="button" onClick={openSheet}>
+                Show Bottom-Sheet
+            </button>
+
+            <Image src={`https://picsum.photos/id/${productId}/640/320`} className="product last-child"/>
+
+            <BottomSheet isOpen={isOpen} onDismiss={dismissBottomSheet}>
+                <h2>Some Headline</h2>
+                <Image src={`https://picsum.photos/id/${productId}/640/320`} className="product"/>
+                <p>{loremIpsum.split(' ').slice(0, 100).join(' ')}</p>
+                <div className="row">
+                    <button className={'button'} onClick={dismissBottomSheet}>Schließen</button>
+                </div>
+            </BottomSheet>
         </div>
     );
 };
@@ -111,8 +145,6 @@ export default function App() {
 }
 
 const Image = ({src, alt, className}: { src: string; alt?: string; className?: string }) => {
-    console.log("Image Rendered: should not be rendered twice if image is cached");
-
     const {cache, addImageToCache} = useImageCache();
     const [loaded, setLoaded] = useState(cache.get(src) || false);
 
