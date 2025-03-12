@@ -2,7 +2,6 @@ import React, {useState, ReactNode, useRef, useEffect} from "react";
 import './bottom-sheet.css';
 
 export const useBackgroundTapToDismiss = (backgroundElementRef: React.RefObject<HTMLElement | null>, dismiss: () => void) => {
-
     useEffect(() => {
         console.log('-- ', backgroundElementRef)
         const pointerStart: { x: undefined | number, y: undefined | number } = {x: undefined, y: undefined};
