@@ -113,12 +113,12 @@ const Page3 = () => {
                 Show Bottom-Sheet
             </button>
 
-            <Image src={`https://picsum.photos/id/${parseInt(productId, 10) + 1}/640/320`}
+            <Image src={`https://picsum.photos/id/${Number(productId) + 1}/640/320`}
                    className="product last-child"/>
 
             <BottomSheet isOpen={isOpen} onDismiss={dismissBottomSheet}>
                 <h2>Some Headline</h2>
-                <Image src={`https://picsum.photos/id/${parseInt(productId, 10) + 2}/640/320`} className="product"/>
+                <Image src={`https://picsum.photos/id/${Number(productId) + 2}/640/320`} className="product"/>
                 <p>{loremIpsum.split(' ').slice(0, 100).join(' ')}</p>
                 <div className="row">
                     <button className={'button'} onClick={dismissBottomSheet}>Schließen</button>
