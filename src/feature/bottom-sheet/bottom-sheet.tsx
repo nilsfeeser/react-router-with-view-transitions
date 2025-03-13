@@ -1,26 +1,28 @@
 import React, {useState, ReactNode, useRef, useEffect} from "react";
 import './bottom-sheet.css';
 
-export const useBackgroundTapToDismiss = (backgroundElementRef: React.RefObject<HTMLElement | null>, dismiss: () => void) => {
+const useBackgroundTapToDismiss = (backgroundElementRef: React.RefObject<HTMLElement | null>, dismiss: () => void) => {
     useEffect(() => {
-        console.log('-- ', backgroundElementRef)
-        const pointerStart: { x: undefined | number, y: undefined | number } = {x: undefined, y: undefined};
         if (!backgroundElementRef.current) return;
 
         const backgroundElement = backgroundElementRef.current
-        const handlePointerDown = (event: PointerEvent) => {
+        const pointerStart: { x: undefined | number, y: undefined | number } = {x: undefined, y: undefined};
+
+        registerEventListener(backgroundElement);
+
+        function handlePointerDown(event: PointerEvent) {
             event.preventDefault();
             event.stopPropagation();
             pointerStart.x = event.clientX;
             pointerStart.y = event.clientY;
-        };
+        }
 
-        const handlePointerMove = (event: Event) => {
+        function handlePointerMove(event: Event) {
             event.preventDefault();
             event.stopPropagation();
-        };
+        }
 
-        const handlePointerUp = (event: PointerEvent) => {
+        function handlePointerUp(event: PointerEvent) {
             if (pointerStart.x === undefined || pointerStart.y === undefined) return;
             const pointerEnd = {x: event.clientX, y: event.clientY};
             const pointerDelta = {
@@ -32,33 +34,63 @@ export const useBackgroundTapToDismiss = (backgroundElementRef: React.RefObject<
                 return;
             }
             dismiss();
-        };
+        }
 
-        backgroundElement.addEventListener("pointerdown", handlePointerDown, {passive: false});
-        ['mousemove', 'touchmove'].forEach(eventName => {
-            backgroundElement.addEventListener(eventName, handlePointerMove, {passive: false});
-        });
-        backgroundElement.addEventListener("pointerup", handlePointerUp);
+        function registerEventListener(target: HTMLElement) {
+            target.addEventListener("pointerdown", handlePointerDown, {passive: false});
+            ['mousemove', 'touchmove'].forEach(eventName => {
+                target.addEventListener(eventName, handlePointerMove, {passive: false});
+            });
+            target.addEventListener("pointerup", handlePointerUp);
+        }
+
+        function unregisterEventListener(target: HTMLElement) {
+            target.removeEventListener("pointerdown", handlePointerDown);
+            ['mousemove', 'touchmove'].forEach(eventName => {
+                target.removeEventListener(eventName, handlePointerMove);
+            });
+            target.removeEventListener("pointerup", handlePointerUp);
+        }
 
         return () => {
-            backgroundElement.removeEventListener("pointerdown", handlePointerDown);
-            ['mousemove', 'touchmove'].forEach(eventName => {
-                backgroundElement.removeEventListener(eventName, handlePointerMove);
-            });
-            backgroundElement.removeEventListener("pointerup", handlePointerUp);
+            unregisterEventListener(backgroundElement)
         };
-    }, [backgroundElementRef.current, dismiss]);
+    }, [backgroundElementRef, dismiss]);
 };
 
-const usePreventBackgroundScrolling = (disableScrolling: boolean, scrollableContentElementRef: React.RefObject<HTMLElement | null>) => {
+const usePreventBackgroundScrolling = (needsDisabledScrolling: boolean, scrollableContentElementRef: React.RefObject<HTMLElement | null>) => {
     // disable scrolling. this can cause momentum scrolling
     // when dragging the bottom sheet down
     useEffect(() => {
-        if (disableScrolling) disableScroll();
-        if (!disableScrolling) enableScroll();
+        if (needsDisabledScrolling) disableScroll();
+        if (!needsDisabledScrolling) enableScroll();
     }, [
-        disableScrolling
+        needsDisabledScrolling
     ])
+
+    // prevent momentum scrolling on end of a fast touch move
+    useEffect(() => {
+        if (needsDisabledScrolling) {
+            window.addEventListener('pointermove', preventScrolling, {passive: false});
+        } else {
+            window.removeEventListener('pointermove', preventScrolling);
+        }
+
+        return () => {
+            window.removeEventListener('pointermove', preventScrolling);
+        }
+    }, [needsDisabledScrolling]);
+
+    // allow scrolling on the actual content element
+    useEffect(() => {
+        if (!scrollableContentElementRef.current) return;
+        const scrollableContentElement = scrollableContentElementRef.current;
+        scrollableContentElement.addEventListener('pointermove', stopPropagation);
+
+        return () => {
+            scrollableContentElement.removeEventListener('pointermove', stopPropagation);
+        }
+    }, [scrollableContentElementRef])
 
     function disableScroll() {
         const scrollY = window.scrollY;
@@ -73,30 +105,6 @@ const usePreventBackgroundScrolling = (disableScrolling: boolean, scrollableCont
         document.body.style.top = '';
         window.scrollTo(0, parseInt(scrollY || '0') * -1);
     }
-
-    // prevent momentum scrolling on end of a fast touch move
-    useEffect(() => {
-        if (disableScrolling) {
-            window.addEventListener('pointermove', preventScrolling, {passive: false});
-        } else {
-            window.removeEventListener('pointermove', preventScrolling);
-        }
-
-        return () => {
-            window.removeEventListener('pointermove', preventScrolling);
-        }
-    }, [disableScrolling]);
-
-    // allow scrolling on the actual content element
-    useEffect(() => {
-        if (!scrollableContentElementRef.current) return;
-        const scrollableContentElement = scrollableContentElementRef.current;
-        scrollableContentElement.addEventListener('pointermove', stopPropagation);
-
-        return () => {
-            scrollableContentElement.removeEventListener('pointermove', stopPropagation);
-        }
-    }, [disableScrolling, scrollableContentElementRef])
 
     function stopPropagation(event: PointerEvent) {
         event.stopPropagation()
@@ -121,8 +129,9 @@ const useDragToDismiss = (
         if (!isOpen || !draggableElementRef.current) return;
 
         const draggableElement: HTMLDivElement = draggableElementRef.current;
-
         let moveDistance = 0;
+        let moveDirection: 'none' | 'up' | 'down' = 'none';
+        let pointerPreviousY = 0;
         setTranslateY(0);
         pointerStartY.current = 0;
         isDragging.current = false;
@@ -142,7 +151,8 @@ const useDragToDismiss = (
                         ? event.clientY : 0;
 
             moveDistance = Math.max(0, clientY - pointerStartY.current);
-
+            moveDirection = clientY > pointerPreviousY ? 'down' : 'up';
+            pointerPreviousY = clientY;
             setTranslateY(moveDistance);
         };
 
@@ -152,37 +162,36 @@ const useDragToDismiss = (
             setTranslateY(0);
 
             if (moveDistance <= 200) {
-                pointerStartY.current = 0;
+                return;
+            }
+
+            if (moveDirection === 'up') {
                 return;
             }
 
             dismiss();
         };
 
-        // we add the starting eventlistener right on the handle but the move and end listener on the documnet
-        // this way we can ensure that we can still drag the element even if the pointer leaves the handle
-        ['mousedown', 'touchstart'].forEach((eventName) => {
-            draggableElement.addEventListener(eventName, handlePointerDown, {passive: false});
-        });
+        const registerEventHandler = (target: HTMLElement)=> {
+            // we add the starting eventlistener right on the handle but the move and end listener on the documnet
+            // this way we can ensure that we can still drag the element even if the pointer leaves the handle
+            ['mousedown', 'touchstart'].forEach(eventName => target.addEventListener(eventName, handlePointerDown, {passive: false}));
+            ['mousemove', 'touchmove'].forEach(eventName => document.addEventListener(eventName, handlePointerMove, {
+                passive: false,
+                capture: true
+            }));
+            ['mouseup', 'touchend'].forEach(eventName => document.addEventListener(eventName, handlePointerUp));
+        }
 
-        ['mousemove', 'touchmove'].forEach(event => {
-            document.addEventListener(event, handlePointerMove, {passive: false});
-        });
+        const unregisterEventHandler = (target: HTMLElement)=> {
+            ['mousedown', 'touchstart'].forEach(eventName => target.removeEventListener(eventName, handlePointerDown));
+            ['mousemove', 'touchmove'].forEach(eventName => document.removeEventListener(eventName, handlePointerMove, {capture: true}));
+            ['mouseup', 'touchend'].forEach(eventName => document.removeEventListener(eventName, handlePointerUp));
+        }
 
-        ['mouseup', 'touchend'].forEach(event => {
-            document.addEventListener(event, handlePointerUp);
-        });
-
+        registerEventHandler(draggableElement)
         return () => {
-            ['mousedown', 'touchstart'].forEach(event => {
-                draggableElement.removeEventListener(event, handlePointerDown);
-            });
-            ['mousemove', 'touchmove'].forEach(event => {
-                document.removeEventListener(event, handlePointerMove);
-            });
-            ['mouseup', 'touchend'].forEach(event => {
-                document.removeEventListener(event, handlePointerUp);
-            });
+            unregisterEventHandler(draggableElement)
         };
     }, [isOpen, dismiss, draggableElementRef]);
 

@@ -146,7 +146,7 @@ body {
         }
     }
 
-    .product {
+    .image {
         line-height: 0;
         width: 100%;
         aspect-ratio: 2 / 1;
@@ -154,8 +154,11 @@ body {
         background: #ccc;
         background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
         background-size: 200% 100%;
-        animation: shimmer 1.5s infinite linear;
         box-shadow: 0 0 55px #3334 inset;
+
+        &:not(.loaded) {
+            animation: shimmer 1.5s infinite linear;
+        }
 
         & img {
             width: 100%;
@@ -164,11 +167,13 @@ body {
 
         & img.fade-in-image {
             opacity: 0;
-            transition: opacity 0.5s ease-in-out;
+            transition: opacity 1.5s ease-in-out;
         }
 
-        & img.fade-in-image.loaded {
-            opacity: 1;
+        &.loaded {
+            & img.fade-in-image {
+                opacity: 1;
+            }
         }
     }
 

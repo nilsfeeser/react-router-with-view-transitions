@@ -9,7 +9,7 @@ import {
 import {useImageCache} from "./feature/image-cache.tsx";
 import {TransitionProvider, TransitioningLink} from "./feature/page-transition.tsx";
 import {ImageCacheProvider} from "./feature/image-cache.tsx";
-import { BottomSheet } from "./feature/bottom-sheet/bottom-sheet.tsx";
+import {BottomSheet} from "./feature/bottom-sheet/bottom-sheet.tsx";
 
 const Layout = () => {
     return (
@@ -107,17 +107,18 @@ const Page3 = () => {
             </TransitioningLink>
 
             <h1>This page should be scrollable so here is some product describing text</h1>
-            <p>{loremIpsum.split(' ').slice(0, 100).join(' ')}</p>
+            <p>{loremIpsum.split(' ').slice(0, 300).join(' ')}</p>
 
             <button type="button" className="button" onClick={openSheet}>
                 Show Bottom-Sheet
             </button>
 
-            <Image src={`https://picsum.photos/id/${productId}/640/320`} className="product last-child"/>
+            <Image src={`https://picsum.photos/id/${parseInt(productId, 10) + 1}/640/320`}
+                   className="product last-child"/>
 
             <BottomSheet isOpen={isOpen} onDismiss={dismissBottomSheet}>
                 <h2>Some Headline</h2>
-                <Image src={`https://picsum.photos/id/${productId}/640/320`} className="product"/>
+                <Image src={`https://picsum.photos/id/${parseInt(productId, 10) + 2}/640/320`} className="product"/>
                 <p>{loremIpsum.split(' ').slice(0, 100).join(' ')}</p>
                 <div className="row">
                     <button className={'button'} onClick={dismissBottomSheet}>Schließen</button>
@@ -160,12 +161,12 @@ const Image = ({src, alt, className}: { src: string; alt?: string; className?: s
     }
 
     return (
-        <div className={className}>
+        <div className={`image ${className} ${loaded ? "loaded" : ""}`}>
             <img
                 src={src}
                 alt={alt}
                 onLoad={() => onLoad(src)}
-                className={`fade-in-image ${loaded ? "loaded" : ""}`}
+                className={`fade-in-image`}
             />
         </div>
     );
