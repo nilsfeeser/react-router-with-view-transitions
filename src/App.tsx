@@ -1,3 +1,4 @@
+import {scan} from "react-scan";
 import {useState, useMemo} from 'react';
 import './style.css';
 import {
@@ -10,6 +11,8 @@ import {TransitionProvider, TransitioningLink} from "./feature/page-transition.t
 import {ImageCacheProvider} from "./feature/image-cache.tsx";
 import {BottomSheet} from "./feature/bottom-sheet/bottom-sheet.tsx";
 import {Image} from "./feature/image/image.tsx";
+
+scan({enabled: true});
 
 const Layout = () => {
     return (
