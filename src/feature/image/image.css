@@ -1,0 +1,30 @@
+.image {
+    line-height: 0;
+    width: 100%;
+    aspect-ratio: 2 / 1;
+    margin: 0 0 20px;
+    background: #ccc;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    box-shadow: 0 0 55px #3334 inset;
+
+    &:not(.loaded) {
+        animation: shimmer 1.5s infinite linear;
+    }
+
+    & img {
+        width: 100%;
+        height: 100%;
+    }
+
+    & img.fade-in-image {
+        opacity: 0;
+        transition: opacity .5s ease-in-out;
+    }
+
+    &.loaded {
+        & img.fade-in-image {
+            opacity: 1;
+        }
+    }
+}

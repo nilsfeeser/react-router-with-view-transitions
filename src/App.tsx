@@ -1,4 +1,4 @@
-import {useState, useEffect, useMemo} from 'react';
+import {useState, useMemo} from 'react';
 import './style.css';
 import {
     Outlet,
@@ -6,10 +6,10 @@ import {
     createBrowserRouter,
     RouterProvider,
 } from 'react-router-dom';
-import {useImageCache} from "./feature/image-cache.tsx";
 import {TransitionProvider, TransitioningLink} from "./feature/page-transition.tsx";
 import {ImageCacheProvider} from "./feature/image-cache.tsx";
 import {BottomSheet} from "./feature/bottom-sheet/bottom-sheet.tsx";
+import {Image} from "./feature/image/image.tsx";
 
 const Layout = () => {
     return (
@@ -64,12 +64,9 @@ const Page2 = () => {
             <ul>
                 {Array.from({length: 70}, (_, index) => (
                     <li key={index}>
-                        <TransitioningLink
-                            to={`/page3/${index}`}
-                            transition="push"
-                        >
+                        <TransitioningLink to={`/page3/${index}`} transition="push">
                             <h5>➔ Item Nr {index + 1}</h5>
-                            <DummyProductView></DummyProductView>
+                            <DummyProductView/>
                         </TransitioningLink>
                     </li>
                 ))}
@@ -144,33 +141,6 @@ const router = createBrowserRouter([
 export default function App() {
     return <RouterProvider router={router}/>;
 }
-
-const Image = ({src, alt, className}: { src: string; alt?: string; className?: string }) => {
-    const {cache, addImageToCache} = useImageCache();
-    const [loaded, setLoaded] = useState(cache.get(src) || false);
-
-    useEffect(() => {
-        if (cache.has(src)) {
-            setLoaded(true);
-        }
-    }, [src, cache]);
-
-    const onLoad = (src: string) => {
-        setLoaded(true);
-        addImageToCache(src);
-    }
-
-    return (
-        <div className={`image ${className} ${loaded ? "loaded" : ""}`}>
-            <img
-                src={src}
-                alt={alt}
-                onLoad={() => onLoad(src)}
-                className={`fade-in-image`}
-            />
-        </div>
-    );
-};
 
 const DummyProductView = () => {
     return (

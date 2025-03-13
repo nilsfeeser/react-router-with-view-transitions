@@ -9,7 +9,6 @@ const ImageCacheContext = createContext<ImageCacheContextType | null>(null);
 
 export const ImageCacheProvider = ({children}: { children: React.ReactNode }) => {
     const [cache] = useState(new Map<string, boolean>());
-
     const addImageToCache = (src: string) => {
         cache.set(src, true);
     };

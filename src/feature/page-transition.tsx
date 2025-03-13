@@ -4,17 +4,20 @@ import {Link, useNavigate, type To} from 'react-router-dom';
 interface TransitionContextType {
     setTransition: (transition: 'push' | 'pop') => void;
     transition: 'push' | 'pop';
+    isTransitioning: boolean;
+    setIsTransitioning: (isTransitioning: boolean) => void;
 }
 
-const TransitionContext = createContext<TransitionContextType>(
+export const TransitionContext = createContext<TransitionContextType>(
     {} as TransitionContextType
 );
 
 export function TransitionProvider({children}: { children: ReactNode }) {
     const [transition, setTransition] = useState<'push' | 'pop'>('push');
+    const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
 
     return (
-        <TransitionContext.Provider value={{transition, setTransition}}>
+        <TransitionContext.Provider value={{transition, setTransition, isTransitioning, setIsTransitioning}}>
             <TransitionStyles/>
             {children}
         </TransitionContext.Provider>
@@ -64,24 +67,31 @@ type TransitioningLinkProps = {
 } & React.AnchorHTMLAttributes<HTMLAnchorElement>;
 
 export const TransitioningLink = ({to: toProp, transition, children, ...props}: TransitioningLinkProps) => {
-    const {setTransition} = useContext(TransitionContext);
+    const {setTransition, setIsTransitioning} = useContext(TransitionContext);
     const navigate = useNavigate();
     const viewTransitionSupported = Boolean(document.startViewTransition);
     // -1 is equivalent to hitting the back button;
     // @see: https://reactrouter.com/6.28.1/hooks/use-navigate#usenavigate
     const to = toProp === '-1' ? -1 as To : toProp;
 
+
+
     const handleNavigation = (event: MouseEvent<HTMLAnchorElement>) => {
         event.preventDefault();
         setTransition(transition);
-        if (viewTransitionSupported) {
-            document.startViewTransition(() => {
-                navigate(to);
-                window.scrollTo(0, 0);
-            });
+        if (!viewTransitionSupported) {
+            navigate(to);
             return;
         }
-        navigate(to);
+
+        setIsTransitioning(true);
+        const viewTransition = document.startViewTransition(() => {
+            navigate(to);
+            window.scrollTo(0, 0);
+        });
+        viewTransition.finished.finally(() => {
+            setIsTransitioning(false);
+        });
     };
 
     return (

@@ -234,7 +234,6 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({isOpen, onDismiss, chil
         }
     }, [isOpen]);
 
-
     return (
         <div className={`bottom-sheet-component ${isOpen ? 'open' : ''}`}>
             <div
