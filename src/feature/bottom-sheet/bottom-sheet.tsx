@@ -1,4 +1,4 @@
-import React, {useState, ReactNode, useRef, useEffect} from "react";
+import React, {ReactNode, useRef, useEffect} from "react";
 import './bottom-sheet.css';
 
 const useBackgroundTapToDismiss = (backgroundElementRef: React.RefObject<HTMLElement | null>, dismiss: () => void) => {
@@ -117,28 +117,37 @@ const usePreventBackgroundScrolling = (needsDisabledScrolling: boolean, scrollab
 
 const useDragToDismiss = (
     draggableElementRef: React.RefObject<HTMLDivElement | null>,
+    containerElementRef: React.RefObject<HTMLDivElement | null>,
     isOpen: boolean,
     dismiss: () => void
-): [number, (event: React.PointerEvent<HTMLDivElement>) => void, string] => {
-    const [translateY, setTranslateY] = useState<number>(0);
+): string => {
     const pointerStartY = useRef(0);
     const containerClassName = useRef('animated');
     const isDragging = useRef(false);
 
     useEffect(() => {
-        if (!isOpen || !draggableElementRef.current) return;
+        if (!isOpen || !draggableElementRef.current || !containerElementRef.current) return;
 
         const draggableElement: HTMLDivElement = draggableElementRef.current;
+        const containerElement: HTMLDivElement = containerElementRef.current;
+
         let moveDistance = 0;
         let moveDirection: 'none' | 'up' | 'down' = 'none';
-        let pointerPreviousY = 0;
-        setTranslateY(0);
+        let pointerPreviousY = 0; // used to determine the direction of the move
         pointerStartY.current = 0;
         isDragging.current = false;
 
         const handlePointerDown = (event: Event) => {
             // prevents momentum scrolling
             event.preventDefault();
+            disableTransition();
+            isDragging.current = true;
+            const clientY =
+                event instanceof TouchEvent
+                    ? event.touches[0].clientY
+                    : event instanceof MouseEvent
+                        ? event.clientY : 0;
+            pointerStartY.current = clientY;
         }
 
         const handlePointerMove = (event: Event) => {
@@ -153,13 +162,15 @@ const useDragToDismiss = (
             moveDistance = Math.max(0, clientY - pointerStartY.current);
             moveDirection = clientY > pointerPreviousY ? 'down' : 'up';
             pointerPreviousY = clientY;
-            setTranslateY(moveDistance);
+
+            containerElement.style.transform = `translateY(${moveDistance}px)`;
         };
 
         const handlePointerUp = () => {
+            if (!isDragging.current) return;
             isDragging.current = false;
-            containerClassName.current = 'animated';
-            setTranslateY(0);
+            enableTransition();
+            containerElement.setAttribute('style', '');
 
             if (moveDistance <= 200) {
                 return;
@@ -172,7 +183,17 @@ const useDragToDismiss = (
             dismiss();
         };
 
-        const registerEventHandler = (target: HTMLElement)=> {
+        const enableTransition = () => {
+            containerClassName.current = 'animated';
+            containerElement.classList.add('animated');
+        }
+
+        const disableTransition = () => {
+            containerClassName.current = '';
+            containerElement.classList.remove('animated');
+        }
+
+        const registerEventHandler = (target: HTMLElement) => {
             // we add the starting eventlistener right on the handle but the move and end listener on the documnet
             // this way we can ensure that we can still drag the element even if the pointer leaves the handle
             ['mousedown', 'touchstart'].forEach(eventName => target.addEventListener(eventName, handlePointerDown, {passive: false}));
@@ -183,7 +204,7 @@ const useDragToDismiss = (
             ['mouseup', 'touchend'].forEach(eventName => document.addEventListener(eventName, handlePointerUp));
         }
 
-        const unregisterEventHandler = (target: HTMLElement)=> {
+        const unregisterEventHandler = (target: HTMLElement) => {
             ['mousedown', 'touchstart'].forEach(eventName => target.removeEventListener(eventName, handlePointerDown));
             ['mousemove', 'touchmove'].forEach(eventName => document.removeEventListener(eventName, handlePointerMove, {capture: true}));
             ['mouseup', 'touchend'].forEach(eventName => document.removeEventListener(eventName, handlePointerUp));
@@ -193,20 +214,9 @@ const useDragToDismiss = (
         return () => {
             unregisterEventHandler(draggableElement)
         };
-    }, [isOpen, dismiss, draggableElementRef]);
+    }, [isOpen, dismiss, draggableElementRef, containerElementRef]);
 
-    const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-        containerClassName.current = '';
-        isDragging.current = true;
-        pointerStartY.current = event.clientY;
-        setTranslateY(0);
-    };
-
-    return [
-        translateY,
-        handlePointerDown,
-        containerClassName.current
-    ];
+    return containerClassName.current;
 };
 
 type BottomSheetProps = {
@@ -217,12 +227,14 @@ type BottomSheetProps = {
 
 export const BottomSheet: React.FC<BottomSheetProps> = ({isOpen, onDismiss, children}) => {
     const backgroundElementRef = useRef<HTMLDivElement>(null);
+    const containerElementRef = useRef<HTMLDivElement>(null);
     const contentElementRef = useRef<HTMLDivElement>(null);
     const dragHandleRef = useRef<HTMLDivElement>(null);
 
     useBackgroundTapToDismiss(backgroundElementRef, onDismiss);
-    const [translateY, handlePointerDown, transitioningClassName] = useDragToDismiss(
+    const transitioningClassName = useDragToDismiss(
         dragHandleRef,
+        containerElementRef,
         isOpen,
         onDismiss
     );
@@ -243,9 +255,9 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({isOpen, onDismiss, chil
             />
 
             <div className={`bottom-sheet-content ${transitioningClassName} ${isOpen ? 'open' : ''}`}
-                 style={translateY ? {transform: `translateY(${translateY}px)`} : {}}>
-
-                <div className="bottom-sheet-handle" ref={dragHandleRef} onPointerDown={handlePointerDown}/>
+                 ref={containerElementRef}
+            >
+                <div className="bottom-sheet-handle" ref={dragHandleRef}/>
                 <div className="bottom-sheet-content-inner" ref={contentElementRef}>
                     {children}
                 </div>

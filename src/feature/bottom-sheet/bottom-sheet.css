@@ -33,7 +33,7 @@
         overscroll-behavior: contain;
 
         &.animated {
-            transition: transform 0.4s ease, top 0.3s ease;
+            transition: transform 0.4s ease;
         }
 
         &.open {
