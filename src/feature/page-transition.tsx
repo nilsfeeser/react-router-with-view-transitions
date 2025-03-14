@@ -74,8 +74,6 @@ export const TransitioningLink = ({to: toProp, transition, children, ...props}: 
     // @see: https://reactrouter.com/6.28.1/hooks/use-navigate#usenavigate
     const to = toProp === '-1' ? -1 as To : toProp;
 
-
-
     const handleNavigation = (event: MouseEvent<HTMLAnchorElement>) => {
         event.preventDefault();
         setTransition(transition);

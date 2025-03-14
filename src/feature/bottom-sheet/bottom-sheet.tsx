@@ -117,16 +117,16 @@ const usePreventBackgroundScrolling = (needsDisabledScrolling: boolean, scrollab
 
 const useDragToDismiss = (
     componentElementRef: React.RefObject<HTMLDivElement | null>,
-    draggableElementRef: React.RefObject<HTMLDivElement | null>,
-    elasticElementRef: React.RefObject<HTMLDivElement | null>,
     containerElementRef: React.RefObject<HTMLDivElement | null>,
     backgroundElementRef: React.RefObject<HTMLDivElement | null>,
+    draggableElementRef: React.RefObject<HTMLDivElement | null>,
+    elasticElementRef: React.RefObject<HTMLDivElement | null>,
     isOpen: boolean,
     dismiss: () => void,
     options: { dismissDistance?: number, elasticDrag?: boolean } = {}
-): string => {
+): boolean => {
     const pointerStartY = useRef(0);
-    const containerClassName = useRef('');
+    const isUserInteracting = useRef(false);
     const isDragging = useRef(false);
 
     useEffect(() => {
@@ -203,16 +203,13 @@ const useDragToDismiss = (
             startDrag: (pointerY: number) => {
                 isDragging.current = true;
                 componentElement.classList.add('is-user-interacting');
-                containerClassName.current = 'is-user-interacting';
+                isUserInteracting.current = true;
                 moveDistance = 0;
                 pointerStartY.current = pointerY;
                 dragging.updateBackgroundOpacity(moveDistance);
             },
             moveDrag: (clientY: number) => {
-                if (settings.elasticDrag) {
-                    dragging.elasticDrag(clientY);
-                }
-
+                if (settings.elasticDrag) dragging.elasticDrag(clientY);
                 moveDistance = Math.max(0, clientY - pointerStartY.current)
                 moveDirection = clientY > pointerPreviousY ? 'down' : 'up';
                 pointerPreviousY = clientY;
@@ -222,7 +219,7 @@ const useDragToDismiss = (
             endDrag: () => {
                 isDragging.current = false;
                 componentElement.classList.remove('is-user-interacting');
-                containerClassName.current = '';
+                isUserInteracting.current = false;
                 backgroundElement.style.opacity = '';
                 elasticElement.setAttribute('style', '');
                 containerElement.setAttribute('style', '');
@@ -249,9 +246,9 @@ const useDragToDismiss = (
         return () => {
             eventHandler.unregisterEventHandler(draggableElement)
         };
-    }, [isOpen, dismiss, draggableElementRef, containerElementRef, backgroundElementRef, componentElementRef, options]);
+    }, [isOpen, dismiss, draggableElementRef, containerElementRef, backgroundElementRef, componentElementRef, elasticElementRef, options]);
 
-    return containerClassName.current;
+    return isUserInteracting.current;
 };
 
 type BottomSheetProps = {
@@ -261,22 +258,21 @@ type BottomSheetProps = {
 };
 
 export const BottomSheet: React.FC<BottomSheetProps> = ({isOpen, onDismiss, children}) => {
-
     const componentElementRef = useRef<HTMLDivElement>(null);
-    const backgroundElementRef = useRef<HTMLDivElement>(null);
     const containerElementRef = useRef<HTMLDivElement>(null);
+    const backgroundElementRef = useRef<HTMLDivElement>(null);
     const contentElementRef = useRef<HTMLDivElement>(null);
     const handleElementRef = useRef<HTMLDivElement>(null);
     const elasticElementRef = useRef<HTMLDivElement>(null);
 
     useBackgroundTapToDismiss(backgroundElementRef, onDismiss);
 
-    const transitioningClassName = useDragToDismiss(
+    const isUserInteracting = useDragToDismiss(
         componentElementRef,
-        handleElementRef,
-        elasticElementRef,
         containerElementRef,
         backgroundElementRef,
+        handleElementRef,
+        elasticElementRef,
         isOpen,
         onDismiss,
         {elasticDrag: true}
@@ -291,22 +287,17 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({isOpen, onDismiss, chil
     }, [isOpen]);
 
     return (
-        <div className={`bottom-sheet-component ${isOpen ? 'open' : ''} ${transitioningClassName}`}
-             ref={componentElementRef}>
-            <div
-                className="bottom-sheet-background"
-                ref={backgroundElementRef}
-            />
-
-            <div className={`bottom-sheet-container`}
-                 ref={containerElementRef}
-            >
-                <div className="bottom-sheet-handle" ref={handleElementRef}/>
-                <div className="bottom-sheet-elastic-element" ref={elasticElementRef}/>
-                <div className="bottom-sheet-content" ref={contentElementRef}>
-                    {children}
-                </div>
+    <div
+        className={`bottom-sheet-component ${isOpen ? 'open' : ''} ${isUserInteracting ? 'is-user-interacting' : ''}`}
+        ref={componentElementRef}>
+        <div className="bottom-sheet-background" ref={backgroundElementRef}/>
+        <div className={`bottom-sheet-container`} ref={containerElementRef}>
+            <div className="bottom-sheet-handle" ref={handleElementRef}/>
+            <div className="bottom-sheet-elastic-element" ref={elasticElementRef}/>
+            <div className="bottom-sheet-content" ref={contentElementRef}>
+                {children}
             </div>
         </div>
+    </div>
     );
 };
