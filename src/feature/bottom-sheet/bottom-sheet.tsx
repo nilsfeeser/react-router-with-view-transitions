@@ -118,6 +118,7 @@ const usePreventBackgroundScrolling = (needsDisabledScrolling: boolean, scrollab
 const useDragToDismiss = (
     componentElementRef: React.RefObject<HTMLDivElement | null>,
     draggableElementRef: React.RefObject<HTMLDivElement | null>,
+    elasticElementRef: React.RefObject<HTMLDivElement | null>,
     containerElementRef: React.RefObject<HTMLDivElement | null>,
     backgroundElementRef: React.RefObject<HTMLDivElement | null>,
     isOpen: boolean,
@@ -129,7 +130,10 @@ const useDragToDismiss = (
     const isDragging = useRef(false);
 
     useEffect(() => {
-        if (!isOpen || !draggableElementRef.current || !containerElementRef.current || !backgroundElementRef.current || !componentElementRef.current) return;
+        if (!isOpen ||
+            !draggableElementRef.current || !containerElementRef.current ||
+            !backgroundElementRef.current || !componentElementRef.current ||
+            !elasticElementRef.current) return;
 
         const settings = {
             ...{dismissDistance: 200, elasticDrag: false},
@@ -140,6 +144,7 @@ const useDragToDismiss = (
         const draggableElement: HTMLDivElement = draggableElementRef.current;
         const containerElement: HTMLDivElement = containerElementRef.current;
         const backgroundElement: HTMLDivElement = backgroundElementRef.current;
+        const elasticElement: HTMLDivElement = elasticElementRef.current;
 
         let moveDistance = 0; // used to determine if the user dragged the element far enough to dismiss it
         let moveDirection: 'none' | 'up' | 'down' = 'none';
@@ -204,7 +209,7 @@ const useDragToDismiss = (
                 dragging.updateBackgroundOpacity(moveDistance);
             },
             moveDrag: (clientY: number) => {
-                if(settings.elasticDrag){
+                if (settings.elasticDrag) {
                     dragging.elasticDrag(clientY);
                 }
 
@@ -219,13 +224,14 @@ const useDragToDismiss = (
                 componentElement.classList.remove('is-user-interacting');
                 containerClassName.current = '';
                 backgroundElement.style.opacity = '';
+                elasticElement.setAttribute('style', '');
                 containerElement.setAttribute('style', '');
             },
             elasticDrag: (clientY: number) => {
                 let moveDistance = clientY - pointerStartY.current;
-                if(moveDistance < 0){
-                    moveDistance /= 3;
-                    containerElement.style.height = `${containerHeight - moveDistance}px`;
+                if (moveDistance < 0) {
+                    moveDistance /= 14;
+                    elasticElement.style.height = `${-moveDistance}px`;
                     containerElement.style.maxHeight = `${containerHeight - moveDistance}px`;
                 }
             },
@@ -261,12 +267,14 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({isOpen, onDismiss, chil
     const containerElementRef = useRef<HTMLDivElement>(null);
     const contentElementRef = useRef<HTMLDivElement>(null);
     const handleElementRef = useRef<HTMLDivElement>(null);
+    const elasticElementRef = useRef<HTMLDivElement>(null);
 
     useBackgroundTapToDismiss(backgroundElementRef, onDismiss);
 
     const transitioningClassName = useDragToDismiss(
         componentElementRef,
         handleElementRef,
+        elasticElementRef,
         containerElementRef,
         backgroundElementRef,
         isOpen,
@@ -294,6 +302,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({isOpen, onDismiss, chil
                  ref={containerElementRef}
             >
                 <div className="bottom-sheet-handle" ref={handleElementRef}/>
+                <div className="bottom-sheet-elastic-element" ref={elasticElementRef}/>
                 <div className="bottom-sheet-content" ref={contentElementRef}>
                     {children}
                 </div>
