@@ -116,105 +116,115 @@ const usePreventBackgroundScrolling = (needsDisabledScrolling: boolean, scrollab
 }
 
 const useDragToDismiss = (
+    componentElementRef: React.RefObject<HTMLDivElement | null>,
     draggableElementRef: React.RefObject<HTMLDivElement | null>,
     containerElementRef: React.RefObject<HTMLDivElement | null>,
+    backgroundElementRef: React.RefObject<HTMLDivElement | null>,
     isOpen: boolean,
     dismiss: () => void
 ): string => {
     const pointerStartY = useRef(0);
-    const containerClassName = useRef('animated');
+    const containerClassName = useRef('');
     const isDragging = useRef(false);
 
     useEffect(() => {
-        if (!isOpen || !draggableElementRef.current || !containerElementRef.current) return;
+        if (!isOpen || !draggableElementRef.current || !containerElementRef.current || !backgroundElementRef.current || !componentElementRef.current) return;
 
+        const componentElement: HTMLDivElement = componentElementRef.current;
         const draggableElement: HTMLDivElement = draggableElementRef.current;
         const containerElement: HTMLDivElement = containerElementRef.current;
+        const backgroundElement: HTMLDivElement = backgroundElementRef.current;
 
-        let moveDistance = 0;
+        let moveDistance = 0; // used to determine if the user dragged the element far enough to dismiss it
         let moveDirection: 'none' | 'up' | 'down' = 'none';
         let pointerPreviousY = 0; // used to determine the direction of the move
         pointerStartY.current = 0;
         isDragging.current = false;
 
-        const handlePointerDown = (event: Event) => {
-            // prevents momentum scrolling
-            event.preventDefault();
-            disableTransition();
-            isDragging.current = true;
-            const clientY =
-                event instanceof TouchEvent
+        const eventHandler = {
+            registerEventHandler: (target: HTMLElement) => {
+                // we add the starting eventlistener right on the handle but the move and end listener on the documnet
+                // this way we can ensure that we can still drag the element even if the pointer leaves the handle
+                ['mousedown', 'touchstart'].forEach(eventName => target.addEventListener(eventName, eventHandler.handlePointerDown, {passive: false}));
+                ['mousemove', 'touchmove'].forEach(eventName => document.addEventListener(eventName, eventHandler.handlePointerMove, {
+                    passive: false,
+                    capture: true
+                }));
+                ['mouseup', 'touchend'].forEach(eventName => document.addEventListener(eventName, eventHandler.handlePointerUp));
+            },
+            unregisterEventHandler: (target: HTMLElement) => {
+                ['mousedown', 'touchstart'].forEach(eventName => target.removeEventListener(eventName, eventHandler.handlePointerDown));
+                ['mousemove', 'touchmove'].forEach(eventName => document.removeEventListener(eventName, eventHandler.handlePointerMove, {capture: true}));
+                ['mouseup', 'touchend'].forEach(eventName => document.removeEventListener(eventName, eventHandler.handlePointerUp));
+            },
+            handlePointerDown: (event: Event) => {
+                // prevents momentum scrolling
+                event.preventDefault();
+
+                const pointerY = event instanceof TouchEvent
                     ? event.touches[0].clientY
                     : event instanceof MouseEvent
                         ? event.clientY : 0;
-            pointerStartY.current = clientY;
-        }
 
-        const handlePointerMove = (event: Event) => {
-            if (!isDragging.current) return;
+                dragging.startDrag(pointerY);
+            },
+            handlePointerMove: (event: Event) => {
+                if (!isDragging.current) return;
 
-            const clientY =
-                event instanceof TouchEvent
-                    ? event.touches[0].clientY
-                    : event instanceof MouseEvent
-                        ? event.clientY : 0;
+                const clientY =
+                    event instanceof TouchEvent
+                        ? event.touches[0].clientY
+                        : event instanceof MouseEvent
+                            ? event.clientY : 0;
 
-            moveDistance = Math.max(0, clientY - pointerStartY.current);
-            moveDirection = clientY > pointerPreviousY ? 'down' : 'up';
-            pointerPreviousY = clientY;
-
-            containerElement.style.transform = `translateY(${moveDistance}px)`;
-        };
-
-        const handlePointerUp = () => {
-            if (!isDragging.current) return;
-            isDragging.current = false;
-            enableTransition();
-            containerElement.setAttribute('style', '');
-
-            if (moveDistance <= 200) {
-                return;
+                dragging.moveDrag(clientY);
+            },
+            handlePointerUp: () => {
+                if (!isDragging.current) return;
+                dragging.endDrag();
+                if (moveDistance <= 200 || moveDirection === 'up') return;
+                dismiss();
             }
+        }
 
-            if (moveDirection === 'up') {
-                return;
+        const dragging = {
+            startDrag: (pointerY: number) => {
+                isDragging.current = true;
+                componentElement.classList.add('is-user-interacting');
+                containerClassName.current = 'is-user-interacting';
+                moveDistance = 0;
+                pointerStartY.current = pointerY;
+                dragging.updateBackgroundOpacity(moveDistance);
+            },
+            moveDrag: (clientY: number) => {
+                moveDistance = Math.max(0, clientY - pointerStartY.current);
+                moveDirection = clientY > pointerPreviousY ? 'down' : 'up';
+                pointerPreviousY = clientY;
+                containerElement.style.transform = `translateY(${moveDistance}px)`;
+                dragging.updateBackgroundOpacity(moveDistance)
+            },
+            endDrag: () => {
+                isDragging.current = false;
+                componentElement.classList.remove('is-user-interacting');
+                containerClassName.current = '';
+                backgroundElement.style.opacity = '';
+                containerElement.setAttribute('style', '');
+            },
+            updateBackgroundOpacity: (moveDistance: number) => {
+                const opacity = Math.max(0.3, 1 - (moveDistance / containerElement.clientHeight));
+                if (opacity === 1) {
+                    backgroundElement.style.opacity = '';
+                    return;
+                }
+                backgroundElement.style.opacity = `${opacity}`;
             }
-
-            dismiss();
-        };
-
-        const enableTransition = () => {
-            containerClassName.current = 'animated';
-            containerElement.classList.add('animated');
         }
 
-        const disableTransition = () => {
-            containerClassName.current = '';
-            containerElement.classList.remove('animated');
-        }
-
-        const registerEventHandler = (target: HTMLElement) => {
-            // we add the starting eventlistener right on the handle but the move and end listener on the documnet
-            // this way we can ensure that we can still drag the element even if the pointer leaves the handle
-            ['mousedown', 'touchstart'].forEach(eventName => target.addEventListener(eventName, handlePointerDown, {passive: false}));
-            ['mousemove', 'touchmove'].forEach(eventName => document.addEventListener(eventName, handlePointerMove, {
-                passive: false,
-                capture: true
-            }));
-            ['mouseup', 'touchend'].forEach(eventName => document.addEventListener(eventName, handlePointerUp));
-        }
-
-        const unregisterEventHandler = (target: HTMLElement) => {
-            ['mousedown', 'touchstart'].forEach(eventName => target.removeEventListener(eventName, handlePointerDown));
-            ['mousemove', 'touchmove'].forEach(eventName => document.removeEventListener(eventName, handlePointerMove, {capture: true}));
-            ['mouseup', 'touchend'].forEach(eventName => document.removeEventListener(eventName, handlePointerUp));
-        }
-
-        registerEventHandler(draggableElement)
+        eventHandler.registerEventHandler(draggableElement)
         return () => {
-            unregisterEventHandler(draggableElement)
+            eventHandler.unregisterEventHandler(draggableElement)
         };
-    }, [isOpen, dismiss, draggableElementRef, containerElementRef]);
+    }, [isOpen, dismiss, draggableElementRef, containerElementRef, backgroundElementRef, componentElementRef]);
 
     return containerClassName.current;
 };
@@ -226,18 +236,24 @@ type BottomSheetProps = {
 };
 
 export const BottomSheet: React.FC<BottomSheetProps> = ({isOpen, onDismiss, children}) => {
+
+    const componentElementRef = useRef<HTMLDivElement>(null);
     const backgroundElementRef = useRef<HTMLDivElement>(null);
     const containerElementRef = useRef<HTMLDivElement>(null);
     const contentElementRef = useRef<HTMLDivElement>(null);
-    const dragHandleRef = useRef<HTMLDivElement>(null);
+    const handleElementRef = useRef<HTMLDivElement>(null);
 
     useBackgroundTapToDismiss(backgroundElementRef, onDismiss);
+
     const transitioningClassName = useDragToDismiss(
-        dragHandleRef,
+        componentElementRef,
+        handleElementRef,
         containerElementRef,
+        backgroundElementRef,
         isOpen,
         onDismiss
     );
+
     usePreventBackgroundScrolling(isOpen, contentElementRef);
 
     useEffect(() => {
@@ -247,18 +263,18 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({isOpen, onDismiss, chil
     }, [isOpen]);
 
     return (
-        <div className={`bottom-sheet-component ${isOpen ? 'open' : ''}`}>
+        <div className={`bottom-sheet-component ${isOpen ? 'open' : ''} ${transitioningClassName}`}
+             ref={componentElementRef}>
             <div
                 className="bottom-sheet-background"
                 ref={backgroundElementRef}
-                style={{opacity: isOpen ? 0.5 : 0}}
             />
 
-            <div className={`bottom-sheet-content ${transitioningClassName} ${isOpen ? 'open' : ''}`}
+            <div className={`bottom-sheet-container`}
                  ref={containerElementRef}
             >
-                <div className="bottom-sheet-handle" ref={dragHandleRef}/>
-                <div className="bottom-sheet-content-inner" ref={contentElementRef}>
+                <div className="bottom-sheet-handle" ref={handleElementRef}/>
+                <div className="bottom-sheet-content" ref={contentElementRef}>
                     {children}
                 </div>
             </div>

@@ -7,19 +7,43 @@
     transition: visibility 0.3s ease;
     visibility: hidden;
 
+    &.is-user-interacting {
+        & .bottom-sheet-container .bottom-sheet-handle:before {
+            background: #aaa;
+            width: 80px;
+        }
+    }
+
+    &:not(.is-user-interacting) {
+        & .bottom-sheet-background {
+            transition: opacity 0.3s ease;
+        }
+
+        & .bottom-sheet-container {
+            transition: transform 0.3s ease;
+        }
+    }
+
     &.open {
         visibility: visible;
+
+        & .bottom-sheet-background {
+            opacity: 1;
+        }
+
+        & .bottom-sheet-container {
+            transform: translateY(0);
+        }
     }
 
     & .bottom-sheet-background {
         position: fixed;
         inset: 0;
-        background-color: #000c;
-        transition: opacity 0.3s ease;
+        background-color: #0008;
         opacity: 0;
     }
 
-    & .bottom-sheet-content {
+    & .bottom-sheet-container {
         position: relative;
         display: flex;
         flex-direction: column;
@@ -32,15 +56,7 @@
         transform: translateY(80vh);
         overscroll-behavior: contain;
 
-        &.animated {
-            transition: transform 0.4s ease;
-        }
-
-        &.open {
-            transform: translateY(0);
-        }
-
-        & .bottom-sheet-content-inner {
+        & .bottom-sheet-content {
             padding: 0 0 20px;
             overflow-y: auto;
         }
@@ -61,6 +77,7 @@
                 height: 5px;
                 background-color: #ddd;
                 border-radius: 5px;
+                transition: background-color 0.2s ease, width 0.2s ease;
             }
         }
     }
