@@ -1,27 +1,28 @@
 import {useContext, useEffect, useState} from "react";
 import {TransitionContext} from "../page-transition.tsx";
-import {useImageCache} from "../image-cache.tsx";
 import "./image.css";
 
-export const Image = ({src, alt, className}: { src: string; alt?: string; className?: string }) => {
+interface ImageProps {
+    src: string;
+    alt?: string;
+    className?: string;
+    onLoaded?: (src: string) => void;
+}
+
+export const Image = ({src, alt, className}: ImageProps) => {
     const {isTransitioning} = useContext(TransitionContext);
-    const {cache, addImageToCache} = useImageCache();
-    const [loaded, setLoaded] = useState(cache.get(src) || false);
+    //const {cache, addImageToCache} = useImageCache();
+    const [loaded, setLoaded] = useState(/*cache.get(src) || */false);
     const [visible, setVisible] = useState(false);
+    console.log('loaded', loaded)
 
     useEffect(() => {
         if (!loaded || isTransitioning) return;
         setVisible(true);
     }, [loaded, isTransitioning]);
 
-    useEffect(() => {
-        if (!cache.has(src)) return;
+    const onLoad = () => {
         setLoaded(true);
-    }, [src, cache]);
-
-    const onLoad = (src: string) => {
-        setLoaded(true);
-        addImageToCache(src);
     }
 
     return (
@@ -29,9 +30,7 @@ export const Image = ({src, alt, className}: { src: string; alt?: string; classN
             <img
                 src={src}
                 alt={alt}
-                onLoad={() => {
-                    onLoad(src);
-                }}
+                onLoad={onLoad}
                 className={`fade-in-image`}
             />
         </div>

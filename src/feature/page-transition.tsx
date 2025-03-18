@@ -76,13 +76,14 @@ export const TransitioningLink = ({to: toProp, transition, children, ...props}: 
 
     const handleNavigation = (event: MouseEvent<HTMLAnchorElement>) => {
         event.preventDefault();
-        setTransition(transition);
         if (!viewTransitionSupported) {
             navigate(to);
             return;
         }
 
+        setTransition(transition);
         setIsTransitioning(true);
+
         const viewTransition = document.startViewTransition(() => {
             navigate(to);
             window.scrollTo(0, 0);

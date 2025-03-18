@@ -77,11 +77,33 @@ body {
     height: 100%;
 }
 
+.page3 {
+    .image {
+        width: 100%;
+        aspect-ratio: 2 / 1;
+        margin: 0 0 20px;
+
+        background: #ccc;
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        box-shadow: 0 0 55px #3334 inset;
+
+        &:not(.loaded) {
+            animation: shimmer 1.5s infinite linear;
+        }
+
+        img {
+            width: 100%;
+        }
+    }
+}
+
 .page {
     min-height: calc(100vh - 50px);
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
+    padding: 20px 0 0;
     display: flex;
     align-items: center;
     flex-direction: column;
@@ -104,6 +126,10 @@ body {
         box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
         outline: none;
         text-decoration: none;
+
+        &.button-disabled {
+            background-color: #ccc;
+        }
     }
 
     & .button:active {
@@ -114,6 +140,11 @@ body {
         display: flex;
         gap: 10px;
         justify-content: center;
+        margin: 0 0 15px;
+
+        & .button {
+            margin: 0;
+        }
     }
 
     & ul {
@@ -122,13 +153,13 @@ body {
         list-style-type: none;
 
         & li {
+            position: relative;
             display: block;
-
+            width: 100%;
             margin: 0 0 15px;
 
             & a {
                 display: block;
-                padding: 10px;
                 text-decoration: none;
                 color: #888;
                 background: #f9f9f9;
@@ -147,33 +178,6 @@ body {
         }
     }
 
-
-
-    .dummy-product-view {
-        display: flex;
-        column-gap: 15px;
-
-        & > div:nth-child(1) {
-            flex-grow: 1;
-        }
-
-        & > div:nth-child(2) {
-            flex-grow: 0.5;
-        }
-
-        & div em, & div span {
-            display: inline-block;
-            width: 100%;
-            height: 25px;
-        }
-
-        & div em {
-            background: #eee;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-    }
-
     .last-child {
         margin-bottom: 0;
     }
@@ -181,9 +185,9 @@ body {
 
 @keyframes shimmer {
     0% {
-        background-position: -200% 0;
+        left: -200%;
     }
     100% {
-        background-position: 200% 0;
+        left: 200%;
     }
 }

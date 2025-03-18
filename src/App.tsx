@@ -1,5 +1,5 @@
 import {scan} from "react-scan";
-import {useState, useMemo} from 'react';
+import {useState, useMemo, useEffect, useContext} from 'react';
 import './style.css';
 import {
     Outlet,
@@ -7,12 +7,15 @@ import {
     createBrowserRouter,
     RouterProvider,
 } from 'react-router-dom';
-import {TransitionProvider, TransitioningLink} from "./feature/page-transition.tsx";
+import {TransitionProvider, TransitioningLink, TransitionContext} from "./feature/page-transition.tsx";
 import {ImageCacheProvider} from "./feature/image-cache.tsx";
 import {BottomSheet} from "./feature/bottom-sheet/bottom-sheet.tsx";
 import {Image} from "./feature/image/image.tsx";
+import {ResultEntry} from "./components/result-entry/result-entry.tsx";
+import {fakeFetchProducts, emptyProduct, Product} from "./service/product-service.ts";
+import {ResizingElement} from "./feature/resizing-element/resizing-element.tsx";
 
-scan({enabled: true});
+scan({enabled: false});
 
 const Layout = () => {
     return (
@@ -46,42 +49,59 @@ const Page1 = () => {
 };
 
 const Page2 = () => {
-    const Navigation = () => (
-        <div className="row">
-            <TransitioningLink to="-1" transition="pop" className="button">
-                zurück
-            </TransitioningLink>
+    const emptyProducts = Array.from({length: 3}, () => emptyProduct);
+    const initialProducts = localStorage.getItem('products') ? JSON.parse(localStorage.getItem('products') || '') : emptyProducts;
+    const [products, setProducts] = useState<Product[]>(initialProducts);
 
-            <TransitioningLink to="/page3/0" transition="push" className="button">
-                weiter
-            </TransitioningLink>
-        </div>
-    );
+    const initializeProducts = () => {
+        fakeFetchProducts()
+            .then((newProducts) => {
+                localStorage.setItem('products', JSON.stringify(newProducts));
+                setProducts(newProducts);
+            });
+    }
+
+    const refetchProducts = () => {
+        localStorage.removeItem('products');
+        setProducts(emptyProducts);
+        initializeProducts();
+    }
+
+    useEffect(() => {
+        if (localStorage.getItem('products')) return;
+        initializeProducts();
+    }, []);
 
     return (
         <div className="page page2">
             <h1>Page2</h1>
+            <div className="row">
+                <TransitioningLink to="-1" transition="pop" className="button">
+                    zurück
+                </TransitioningLink>
 
-            {Navigation()}
+                <hr/>
+
+                <button type="button" className="button" onClick={refetchProducts}>Reload</button>
+            </div>
 
             <ul>
-                {Array.from({length: 70}, (_, index) => (
+                {products.map((product, index) => (
                     <li key={index}>
-                        <TransitioningLink to={`/page3/${index}`} transition="push">
-                            <h5>➔ Item Nr {index + 1}</h5>
-                            <DummyProductView/>
+                        <TransitioningLink to={`/page3/${product.position}`} transition="push">
+                            <ResultEntry productViewProps={product}/>
                         </TransitioningLink>
                     </li>
                 ))}
             </ul>
-
-            {Navigation()}
         </div>
     );
 };
 
+
 const Page3 = () => {
     const {productId} = useParams<{ productId: string }>();
+    const {isTransitioning} = useContext(TransitionContext);
 
     const [isOpen, setIsOpen] = useState(false);
 
@@ -99,12 +119,29 @@ const Page3 = () => {
 
     return (
         <div className="page page3">
-            <h1>Page3</h1>
+            <h1>Detailpage Product {productId}</h1>
             <Image src={`https://picsum.photos/id/${productId}/640/320`} className="product"/>
 
-            <TransitioningLink to="-1" transition="pop" className="button">
-                zurück
-            </TransitioningLink>
+            <ResizingElement>
+                {!isTransitioning && (
+                    <>
+                        <div className="row">
+                            <TransitioningLink to="-1" transition="pop" className="button">
+                                zurück
+                            </TransitioningLink>
+                            <button type="button" className="button" onClick={openSheet}>
+                                Bottom-Sheet
+                            </button>
+                            <button type={'button'} className={'button button-disabled'}>Weiter</button>
+                        </div>
+                    </>
+                )}
+            </ResizingElement>
+
+            <p>
+                ↳ If you do not know the size of a suspended loaded component, you should avoid layout shifts by
+                animating the appearing elements.
+            </p>
 
             <h1>This page should be scrollable so here is some product describing text</h1>
             <p>{loremIpsum.split(' ').slice(0, 300).join(' ')}</p>
@@ -144,26 +181,3 @@ const router = createBrowserRouter([
 export default function App() {
     return <RouterProvider router={router}/>;
 }
-
-const DummyProductView = () => {
-    return (
-        <div className="dummy-product-view">
-            <div>
-                <em></em>
-                <em></em>
-                <em></em>
-                <em></em>
-                <em></em>
-                <em></em>
-            </div>
-            <div>
-                <em></em>
-                <em></em>
-                <em></em>
-                <span></span>
-                <span></span>
-                <em></em>
-            </div>
-        </div>
-    );
-};
