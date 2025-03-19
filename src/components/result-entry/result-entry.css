@@ -1,97 +1,95 @@
 .result-entry-component {
-    position: relative;
-    transition: height 0.3s ease-in-out;
-    overflow: hidden;
+  position: relative;
+  transition: height 0.3s ease-in-out;
+  overflow: hidden;
 
-    .dummy-product-view-component {
-
-        position: absolute;
-        width: 100%;
-    }
+  .dummy-product-view-component {
+    position: absolute;
+    width: 100%;
+  }
 }
 
-
 .dummy-product-view-component {
-    transition: opacity 0.5s ease-in-out;
-    opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  opacity: 0;
 
-    &.loading {
-        opacity: 1;
-        background: linear-gradient(to right, #f6f7f8 0%, #eee 20%, #f6f7f8 40%, #f6f7f8 100%) no-repeat;
-        background-size: 200% 100%;
-        -webkit-animation-duration: 1s;
-        -webkit-animation-fill-mode: forwards;
-        -webkit-animation-iteration-count: infinite;
-        -webkit-animation-name: placeholderShimmer;
-        -webkit-animation-timing-function: linear;
+  &.loading {
+    opacity: 1;
+    background: linear-gradient(to right, #f6f7f8 0%, #eee 20%, #f6f7f8 40%, #f6f7f8 100%) no-repeat;
+    background-size: 200% 100%;
+    -webkit-animation-duration: 1s;
+    -webkit-animation-fill-mode: forwards;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-name: placeholderShimmer;
+    -webkit-animation-timing-function: linear;
+  }
+
+  .dummy-product-view {
+    display: flex;
+    column-gap: 15px;
+    padding: 10px;
+
+    & > div:nth-child(1) {
+      flex: 6;
+      display: flex;
+      flex-direction: column;
+      row-gap: 5px;
     }
 
-    .dummy-product-view {
-
-        display: flex;
-        column-gap: 15px;
-        padding: 10px;
-
-        & > div:nth-child(1) {
-            flex: 6;
-            display: flex;
-            flex-direction: column;
-            row-gap: 5px;
-        }
-
-        & > div:nth-child(2) {
-            flex: 4;
-            display: flex;
-            flex-direction: column;
-            row-gap: 5px;
-        }
-
-        & div > em, & div > span {
-            display: inline-block;
-            width: 100%;
-            min-height: 25px;
-            padding: 0 0 7px;
-        }
-
-        & div > em {
-            background: #eee;
-            border: 1px solid #ccc !important;
-            border-radius: 4px;
-        }
+    & > div:nth-child(2) {
+      flex: 4;
+      display: flex;
+      flex-direction: column;
+      row-gap: 5px;
     }
 
-    & > h5 {
-        padding: 3px 15px;
-        background: #002646;
-        color: #fff;
-        display: inline-block;
+    & div > em,
+    & div > span {
+      display: inline-block;
+      width: 100%;
+      min-height: 25px;
+      padding: 0 0 7px;
     }
+
+    & div > em {
+      background: #eee;
+      border: 1px solid #ccc !important;
+      border-radius: 4px;
+    }
+  }
+
+  & > h5 {
+    padding: 3px 15px;
+    background: #0001;
+    color: transparent;
+    display: inline-block;
+    width: 100%;
+    outline: 1px solid #ccc;
+  }
 }
 
 @keyframes placeholderShimmer {
-    0% {
-        background-position: 100% 0;
-    }
+  0% {
+    background-position: 100% 0;
+  }
 
-    100% {
-        background-position: -100% 0;
-    }
+  100% {
+    background-position: -100% 0;
+  }
 }
 
 /* Custom Styles */
 .dummy-product-view-component {
-    & .dummy-product-view {
-        & div > em {
+  & .dummy-product-view {
+    & div > em {
+      &.logo {
+        height: 40px;
+      }
 
-            &.logo {
-                height: 40px;
-            }
-
-            &.grade {
-                height: 40px;
-                margin-top: auto;
-            }
-        }
+      &.grade {
+        height: 40px;
+        margin-top: auto;
+      }
     }
+  }
 }
-

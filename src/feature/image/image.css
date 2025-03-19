@@ -1,15 +1,14 @@
 .image {
-    line-height: 0;
+  line-height: 0;
 
-
-    & img.fade-in-image {
-        opacity: 0;
-        transition: opacity .5s ease-in-out;
+  &.fade-in-image {
+    & img {
+      opacity: 0;
+      transition: opacity 300ms ease-in-out;
     }
 
-    &.loaded {
-        & img.fade-in-image {
-            opacity: 1;
-        }
+    &.loaded img {
+      opacity: 1;
     }
+  }
 }
