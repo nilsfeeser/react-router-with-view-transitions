@@ -1,6 +1,6 @@
 .resultlist-topbar-component {
   position: sticky;
-  will-change: transform;
+  will-change: transform, scroll-position;
   top: 0;
   width: 100%;
   height: 52px;
