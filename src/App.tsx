@@ -10,10 +10,13 @@ import { ResultEntry } from "./components/result-entry/result-entry.tsx";
 import { fakeFetchProducts, emptyProduct, Product } from "./service/product-service.ts";
 import { ResizingElement } from "./feature/resizing-element/resizing-element.tsx";
 import { usePageTransitionState } from "./feature/page-transition.tsx";
+import { useDeeplinkHistoryStack } from "./feature/deeplink-history-stack.ts";
 
 scan({ enabled: false });
 
 const Layout = () => {
+  useDeeplinkHistoryStack();
+
   return (
     <div>
       <TransitionProvider>

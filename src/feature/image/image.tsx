@@ -26,8 +26,6 @@ export const Image = ({ src, alt, className, forceFadeIn }: ImageProps) => {
   const [loaded, setLoaded] = useState(forceFadeIn === true ? false : cache.get(src) || false);
   const [visible, setVisible] = useState(forceFadeIn === true ? false : cache.get(src) || false);
 
-  console.log({ loaded, visible, forceFadeIn });
-
   useEffect(() => {
     if (!loaded || isTransitioning) return;
     setVisible(true);
