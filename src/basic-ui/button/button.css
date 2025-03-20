@@ -16,8 +16,7 @@
     color: #777;
   }
 
-  &.pressed,
-  &:active {
+  &.pressed {
     filter: brightness(70%);
   }
 }

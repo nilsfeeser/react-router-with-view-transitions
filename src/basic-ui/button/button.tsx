@@ -12,19 +12,17 @@ export const Button = ({
 }) => {
   const [isPressed, setIsPressed] = useState(false);
   const onButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (!onClick) return;
     setIsPressed(true);
-    onClick(e);
+
+    if (onClick) onClick(e);
+
     setTimeout(() => {
       setIsPressed(false);
     }, 150);
   };
 
   return (
-    <button
-      onClick={onClick ? onButtonClick : undefined}
-      disabled={disabled}
-      className={`ui-basic-button ${isPressed ? "pressed" : ""}`}>
+    <button onClick={onButtonClick} disabled={disabled} className={`ui-basic-button ${isPressed ? "pressed" : ""}`}>
       {children}
     </button>
   );

@@ -6,6 +6,7 @@
   justify-content: center;
   transition: visibility 0.3s ease;
   visibility: hidden;
+  z-index: 1000;
 
   &.is-user-interacting {
     & .bottom-sheet-container .bottom-sheet-handle:before {
@@ -52,7 +53,7 @@
     display: flex;
     flex-direction: column;
     max-height: calc(
-      100% - 50px
+      100% - 150px
     ); /* Considerations: Page-Scrolling is disabled with `position: fixed` when a Bottomsheet is open - therfore we must use % as a metric. In case this changes a Bottomsheet must be tested under iOS in safari*/
     width: 100%;
     max-width: 800px;
