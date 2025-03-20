@@ -120,7 +120,7 @@ const useDragToDismiss = (
   componentElementRef: React.RefObject<HTMLDivElement | null>,
   containerElementRef: React.RefObject<HTMLDivElement | null>,
   backgroundElementRef: React.RefObject<HTMLDivElement | null>,
-  draggableElementRef: React.RefObject<HTMLDivElement | null>,
+  contentElementRef: React.RefObject<HTMLDivElement | null>,
   elasticElementRef: React.RefObject<HTMLDivElement | null>,
   isOpen: boolean,
   dismiss: () => void,
@@ -133,18 +133,18 @@ const useDragToDismiss = (
   useEffect(() => {
     if (
       !isOpen ||
-      !draggableElementRef.current ||
       !containerElementRef.current ||
       !backgroundElementRef.current ||
       !componentElementRef.current ||
-      !elasticElementRef.current
+      !elasticElementRef.current ||
+      !contentElementRef.current
     )
       return;
 
     const settings = { ...{ dismissDistance: 200, elasticDrag: false }, ...options };
 
     const componentElement: HTMLDivElement = componentElementRef.current;
-    const draggableElement: HTMLDivElement = draggableElementRef.current;
+    const contentElement: HTMLDivElement = contentElementRef.current;
     const containerElement: HTMLDivElement = containerElementRef.current;
     const backgroundElement: HTMLDivElement = backgroundElementRef.current;
     const elasticElement: HTMLDivElement = elasticElementRef.current;
@@ -152,53 +152,111 @@ const useDragToDismiss = (
     let moveDistance = 0; // used to determine if the user dragged the element far enough to dismiss it
     let moveDirection: "none" | "up" | "down" = "none";
     let pointerPreviousY = 0; // used to determine the direction of the move
+    let isScrollingContent = false;
     pointerStartY.current = 0;
     isDragging.current = false;
     const containerHeight = containerElement.clientHeight;
+    let scrollTopAtPointerDown = 0;
+
+    const on = function (
+      node: Node,
+      selector: string | null,
+      eventName: string,
+      callback: Function,
+      options?: AddEventListenerOptions | undefined,
+    ) {
+      const eventListener = function (event: Event) {
+        let { target } = event;
+
+        if (selector === null) {
+          callback.call(null, event, target);
+          return;
+        }
+
+        while (target !== null) {
+          if (target instanceof HTMLElement && target.matches(selector)) {
+            callback.call(null, event, target);
+            break;
+          }
+          target = (target as HTMLElement).parentElement;
+        }
+      };
+
+      node.addEventListener(eventName, eventListener, options);
+
+      return { node, eventName, listener: eventListener, options };
+    };
+
+    const listenerRegistry = new Set<{
+      node: Node;
+      eventName: string;
+      listener: EventListener;
+      options: AddEventListenerOptions | undefined;
+    }>();
 
     const eventHandler = {
-      registerEventHandler: (target: HTMLElement) => {
+      registerEventHandler: (target: HTMLElement, selector: string) => {
         // we add the starting eventlistener right on the handle but the move and end listener on the documnet
         // this way we can ensure that we can still drag the element even if the pointer leaves the handle
-        ["mousedown", "touchstart"].forEach((eventName) =>
-          target.addEventListener(eventName, eventHandler.handlePointerDown, { passive: false }),
-        );
-        ["mousemove", "touchmove"].forEach((eventName) =>
-          document.addEventListener(eventName, eventHandler.handlePointerMove, { passive: false, capture: true }),
-        );
-        ["mouseup", "touchend"].forEach((eventName) =>
-          document.addEventListener(eventName, eventHandler.handlePointerUp),
-        );
-      },
-      unregisterEventHandler: (target: HTMLElement) => {
-        ["mousedown", "touchstart"].forEach((eventName) =>
-          target.removeEventListener(eventName, eventHandler.handlePointerDown),
-        );
-        ["mousemove", "touchmove"].forEach((eventName) =>
-          document.removeEventListener(eventName, eventHandler.handlePointerMove, { capture: true }),
-        );
-        ["mouseup", "touchend"].forEach((eventName) =>
-          document.removeEventListener(eventName, eventHandler.handlePointerUp),
-        );
-      },
-      handlePointerDown: (event: Event) => {
-        // prevents momentum scrolling
-        event.preventDefault();
+        ["mousedown", "touchstart"].forEach((eventName) => {
+          listenerRegistry.add(on(target, selector, eventName, eventHandler.handlePointerDown));
+        });
+        ["mousemove", "touchmove"].forEach((eventName) => {
+          listenerRegistry.add(on(target, selector, eventName, eventHandler.handlePointerMove));
+        });
 
-        const pointerY =
-          event instanceof TouchEvent ? event.touches[0].clientY : event instanceof MouseEvent ? event.clientY : 0;
-
-        dragging.startDrag(pointerY);
+        ["mouseup", "touchend"].forEach((eventName) => {
+          listenerRegistry.add(on(document, selector, eventName, eventHandler.handlePointerUp));
+        });
       },
-      handlePointerMove: (event: Event) => {
-        if (!isDragging.current) return;
+      unregisterEventHandler: () => {
+        listenerRegistry.forEach((listener) => {
+          listener.node.removeEventListener(listener.eventName, listener.listener, listener.options);
+        });
+      },
+      handlePointerDown: (event: Event, target?: HTMLElement) => {
+        const isScrollableTarget = target instanceof HTMLElement && target.scrollHeight > target.clientHeight;
+        scrollTopAtPointerDown = contentElement.scrollTop;
 
         const clientY =
           event instanceof TouchEvent ? event.touches[0].clientY : event instanceof MouseEvent ? event.clientY : 0;
 
-        dragging.moveDrag(clientY);
+        if (isScrollableTarget) {
+          pointerPreviousY = clientY;
+          return;
+        }
+        // prevents momentum scrolling
+        event.preventDefault();
+
+        dragging.startDrag(clientY);
+      },
+      handlePointerMove: (event: Event, target?: HTMLElement) => {
+        event.stopPropagation();
+
+        const clientY =
+          event instanceof TouchEvent ? event.touches[0].clientY : event instanceof MouseEvent ? event.clientY : 0;
+
+        const moveDirection = clientY >= pointerPreviousY ? "down" : "up";
+        const isScrollableTarget = target instanceof HTMLElement && target.scrollHeight > target.clientHeight;
+
+        if (isDragging.current) {
+          dragging.moveDrag(clientY);
+          event.preventDefault();
+          return;
+        }
+
+        if (!isScrollingContent && isScrollableTarget && moveDirection === "down" && scrollTopAtPointerDown === 0) {
+          dragging.startDrag(clientY);
+        } else {
+          isScrollingContent = true;
+          return;
+        }
+
+        event.stopPropagation();
+        event.preventDefault();
       },
       handlePointerUp: () => {
+        isScrollingContent = false;
         if (!isDragging.current) return;
         dragging.endDrag();
         if (moveDistance <= settings.dismissDistance || moveDirection === "up") return;
@@ -227,6 +285,7 @@ const useDragToDismiss = (
         isDragging.current = false;
         componentElement.classList.remove("is-user-interacting");
         isUserInteracting.current = false;
+        pointerPreviousY = 0;
         backgroundElement.style.opacity = "";
         elasticElement.setAttribute("style", "");
         containerElement.setAttribute("style", "");
@@ -249,16 +308,17 @@ const useDragToDismiss = (
       },
     };
 
-    eventHandler.registerEventHandler(draggableElement);
+    eventHandler.registerEventHandler(componentElement, ".bottom-sheet-handle, .bottom-sheet-content");
+
     return () => {
-      eventHandler.unregisterEventHandler(draggableElement);
+      eventHandler.unregisterEventHandler();
     };
   }, [
     isOpen,
     dismiss,
-    draggableElementRef,
     containerElementRef,
     backgroundElementRef,
+    contentElementRef.current,
     componentElementRef,
     elasticElementRef,
     options,
@@ -274,7 +334,6 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onDismiss, chi
   const containerElementRef = useRef<HTMLDivElement>(null);
   const backgroundElementRef = useRef<HTMLDivElement>(null);
   const contentElementRef = useRef<HTMLDivElement>(null);
-  const handleElementRef = useRef<HTMLDivElement>(null);
   const elasticElementRef = useRef<HTMLDivElement>(null);
 
   useBackgroundTapToDismiss(backgroundElementRef, onDismiss);
@@ -283,7 +342,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onDismiss, chi
     componentElementRef,
     containerElementRef,
     backgroundElementRef,
-    handleElementRef,
+    contentElementRef,
     elasticElementRef,
     isOpen,
     onDismiss,
@@ -306,7 +365,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onDismiss, chi
       ref={componentElementRef}>
       <div className="bottom-sheet-background" ref={backgroundElementRef} />
       <div className={`bottom-sheet-container`} ref={containerElementRef}>
-        <div className="bottom-sheet-handle" ref={handleElementRef} />
+        <div className="bottom-sheet-handle" />
         <div className="bottom-sheet-elastic-element" ref={elasticElementRef} />
         <div className="bottom-sheet-content" ref={contentElementRef}>
           {children}

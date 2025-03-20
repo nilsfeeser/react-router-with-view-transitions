@@ -25,7 +25,9 @@ const useStickyElement = () => {
       const stickyContentTopPosition = containerElement.offsetTop;
       const scrollPosition = window.scrollY;
 
-      if (scrollPosition > stickyContentTopPosition) {
+      const pageScrollingIsPrevented = document.body.style.position === "fixed";
+
+      if (pageScrollingIsPrevented || scrollPosition > stickyContentTopPosition) {
         contentElement.style.position = "fixed";
         contentElement.style.top = "0";
       } else {

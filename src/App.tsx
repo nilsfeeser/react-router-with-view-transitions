@@ -188,9 +188,7 @@ const Page3 = () => {
         <Image src={`https://picsum.photos/id/${Number(productId) + 2}/640/320`} className="product" />
         <p>{loremIpsum.split(" ").slice(0, 100).join(" ")}</p>
         <div className="row">
-          <button className={"button"} onClick={dismissBottomSheet}>
-            Schließen
-          </button>
+          <Button onClick={dismissBottomSheet}>Schließen</Button>
         </div>
       </BottomSheet>
     </div>
