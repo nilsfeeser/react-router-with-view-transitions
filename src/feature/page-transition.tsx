@@ -70,14 +70,30 @@ type TransitioningLinkProps = {
   to: string;
   transition: "push" | "pop";
   children: ReactNode;
+  className?: string;
 } & React.AnchorHTMLAttributes<HTMLAnchorElement>;
-export const TransitioningLink = ({ to: toProp, transition, children, ...props }: TransitioningLinkProps) => {
+export const TransitioningLink = ({
+  to: toProp,
+  transition,
+  children,
+  className,
+  ...props
+}: TransitioningLinkProps) => {
   const { setTransition, setIsTransitioning } = useContext(TransitionContext);
   const navigate = useNavigate();
   const viewTransitionSupported = Boolean(document.startViewTransition);
+  const [isPressed, setIsPressed] = useState(false);
   // -1 is equivalent to hitting the back button;
   // @see: https://reactrouter.com/6.28.1/hooks/use-navigate#usenavigate
   const to = toProp === "-1" ? (-1 as To) : toProp;
+
+  const onLinkClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    setIsPressed(true);
+    handleNavigation(event);
+    setTimeout(() => {
+      setIsPressed(false);
+    }, 150);
+  };
 
   const handleNavigation = (event: MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
@@ -99,7 +115,11 @@ export const TransitioningLink = ({ to: toProp, transition, children, ...props }
   };
 
   return (
-    <Link to={to} {...props} onClick={handleNavigation}>
+    <Link
+      to={to}
+      className={`${className ? className : ""} ${isPressed ? "pressed" : ""}`}
+      {...props}
+      onClick={onLinkClick}>
       {children}
     </Link>
   );

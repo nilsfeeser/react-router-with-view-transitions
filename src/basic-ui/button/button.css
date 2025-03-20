@@ -1,0 +1,23 @@
+.ui-basic-button {
+  padding: 10px 20px;
+  margin: 0 0 15px;
+  font-size: 16px;
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+  background-color: #17c;
+  color: #fff;
+  outline: none;
+  text-decoration: none;
+  transition: filter 0.2s ease;
+
+  &[disabled] {
+    background-color: #e5e5e5;
+    color: #777;
+  }
+
+  &.pressed,
+  &:active {
+    filter: brightness(70%);
+  }
+}

@@ -12,6 +12,8 @@ import { ResizingElement } from "./feature/resizing-element/resizing-element.tsx
 import { usePageTransitionState } from "./feature/page-transition.tsx";
 import { useDeeplinkHistoryStack } from "./feature/deeplink-history-stack.ts";
 import console from "./feature/console.ts";
+import { Button } from "./basic-ui/button/button.tsx";
+import { ResultListTopBar } from "./components/resultlist-topbar/resultlist-topbar.tsx";
 
 scan({ enabled: false });
 window.console = console;
@@ -46,17 +48,13 @@ const Page1 = () => {
         <strong>Some text you can not select as this is also the default behaviour on native apps.</strong>
         Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod
       </p>
-      <TransitioningLink to="/page2" transition="push" className="button">
+      <TransitioningLink to="/page2" transition="push" className="link-button">
         weiter
       </TransitioningLink>
 
-      <button
-        type={"button"}
-        className={`button ${!hasProductCache ? "button-disabled" : ""}`}
-        disabled={!hasProductCache}
-        onClick={clearProductCache}>
+      <Button disabled={!hasProductCache} onClick={clearProductCache}>
         clear caches
-      </button>
+      </Button>
     </div>
   );
 };
@@ -106,18 +104,17 @@ const Page2 = () => {
 
   return (
     <div className="page page2">
-      <h1>Page2</h1>
       <div className="row">
-        <TransitioningLink to="-1" transition="pop" className="button">
+        <TransitioningLink to="-1" transition="pop" className="link-button">
           zurück
         </TransitioningLink>
 
         <hr />
 
-        <button type="button" className="button" onClick={refetchProducts}>
-          Reload
-        </button>
+        <Button onClick={refetchProducts}>Reload</Button>
       </div>
+
+      <ResultListTopBar />
 
       <ul>
         {products.map((product, index) => (
@@ -162,15 +159,13 @@ const Page3 = () => {
         {pageTransitionDidComplete && (
           <>
             <div className="row">
-              <TransitioningLink to="-1" transition="pop" className="button">
+              <TransitioningLink to="-1" transition="pop" className="link-button">
                 zurück
               </TransitioningLink>
-              <button type="button" className="button" onClick={openSheet}>
-                Bottom-Sheet
-              </button>
-              <button type={"button"} className={"button button-disabled"}>
-                Weiter
-              </button>
+
+              <Button onClick={openSheet}>Bottom-Sheet</Button>
+
+              <Button disabled={true}>Weiter</Button>
             </div>
           </>
         )}
@@ -184,9 +179,7 @@ const Page3 = () => {
       <h1>This page should be scrollable so here is some product describing text</h1>
       <p>{loremIpsum.split(" ").slice(0, 300).join(" ")}</p>
 
-      <button type="button" className="button" onClick={openSheet}>
-        Show Bottom-Sheet
-      </button>
+      <Button onClick={openSheet}>Bottom-Sheet</Button>
 
       <Image src={`https://picsum.photos/id/${Number(productId) + 1}/640/320`} className="product last-child" />
 

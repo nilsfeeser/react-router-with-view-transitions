@@ -267,9 +267,9 @@ const useDragToDismiss = (
   return isUserInteracting.current;
 };
 
-type BottomSheetProps = { isOpen: boolean; onDismiss: () => void; children: ReactNode };
+type BottomSheetProps = { isOpen: boolean; onDismiss: () => void; children: ReactNode; ctaChildren?: ReactNode };
 
-export const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onDismiss, children }) => {
+export const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onDismiss, children, ctaChildren }) => {
   const componentElementRef = useRef<HTMLDivElement>(null);
   const containerElementRef = useRef<HTMLDivElement>(null);
   const backgroundElementRef = useRef<HTMLDivElement>(null);
@@ -298,6 +298,8 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onDismiss, chi
     }
   }, [isOpen]);
 
+  // TODO: remove component from DOM when closing animation is finished
+
   return (
     <div
       className={`bottom-sheet-component ${isOpen ? "open" : ""} ${isUserInteracting ? "is-user-interacting" : ""}`}
@@ -309,6 +311,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onDismiss, chi
         <div className="bottom-sheet-content" ref={contentElementRef}>
           {children}
         </div>
+        {ctaChildren && <div className="bottom-sheet-cta">{ctaChildren}</div>}
       </div>
     </div>
   );

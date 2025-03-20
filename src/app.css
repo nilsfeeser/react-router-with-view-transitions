@@ -4,186 +4,189 @@
 /* push transition */
 
 @keyframes push-move-out-left {
-    0% {
-        transform: translateX(0vw);
-        filter: brightness(100%);
-    }
-    100% {
-        transform: translateX(-50vw);
-        filter: brightness(70%);
-    }
+  0% {
+    transform: translateX(0vw);
+    filter: brightness(100%);
+  }
+  100% {
+    transform: translateX(-50vw);
+    filter: brightness(70%);
+  }
 }
 
 @keyframes push-move-in-from-right {
-    0% {
-        transform: translateX(100vw)
-    }
-    100% {
-        transform: translateX(0vw);
-    }
+  0% {
+    transform: translateX(100vw);
+  }
+  100% {
+    transform: translateX(0vw);
+  }
 }
 
 /* pop transition */
 
 @keyframes pop-move-out-right {
-    0% {
-        transform: translateX(0vw);
-    }
-    100% {
-        transform: translateX(100vw);
-    }
+  0% {
+    transform: translateX(0vw);
+  }
+  100% {
+    transform: translateX(100vw);
+  }
 }
 
 @keyframes pop-move-in-from-left {
-    0% {
-        filter: brightness(70%);
-        transform: translateX(-50vw);
-    }
-    100% {
-        transform: translateX(0vw);
-        filter: brightness(100%);
-    }
+  0% {
+    filter: brightness(70%);
+    transform: translateX(-50vw);
+  }
+  100% {
+    transform: translateX(0vw);
+    filter: brightness(100%);
+  }
 }
 
 /* RECOMMENDED WebApp STYLES */
 /* =========================================== */
 
 * {
-    user-select: none !important;
-    -webkit-user-select: none !important;
-    -webkit-touch-callout: none !important;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -webkit-touch-callout: none !important;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 /* DEFAULT STYLING NONE TRANSITION-API-RELATED */
 /* =========================================== */
 
 html {
-    font-family: Arial, Helvetica, sans-serif;
-    background: #fff;
-    font-size: 15px;
+  font-family: Helvetica, Arial, sans-serif;
+  background: #fff;
+  font-size: 15px;
 }
 
 * {
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 body {
-    margin: 0;
-    color: #333;
-    background: #ffffff;
-    min-height: 100vh;
-    height: 100%;
+  margin: 0;
+  color: #333;
+  background: #ffffff;
+  min-height: 100vh;
+  height: 100%;
 }
 
 .page3 {
-    .image {
-        width: 100%;
-        aspect-ratio: 2 / 1;
-        margin: 0 0 20px;
+  .image {
+    width: 100%;
+    aspect-ratio: 2 / 1;
+    margin: 0 0 20px;
 
-        background: #ccc;
-        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-        background-size: 200% 100%;
-        box-shadow: 0 0 55px #3334 inset;
+    background: #ccc;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    box-shadow: 0 0 55px #3334 inset;
 
-        &:not(.loaded) {
-            animation: shimmer 1.5s infinite linear;
-        }
-
-        img {
-            width: 100%;
-        }
+    &:not(.loaded) {
+      animation: shimmer 1.5s infinite linear;
     }
+
+    img {
+      width: 100%;
+    }
+  }
 }
 
 .page {
-    min-height: calc(100vh - 50px);
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px 0 0;
+  min-height: calc(100vh - 50px);
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 0 0;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+
+  h1,
+  h2,
+  h3,
+  p {
+    padding: 0 20px;
+    margin: 0 0 20px;
+  }
+
+  & .link-button {
+    margin: 0 0 15px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    background-color: #17c;
+    color: #fff;
+    border-radius: 5px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    outline: none;
+    text-decoration: none;
+
+    &.disabled {
+      background-color: #ccc;
+    }
+
+    &.pressed {
+      filter: brightness(70%);
+    }
+  }
+
+  & .row {
     display: flex;
-    align-items: center;
-    flex-direction: column;
+    gap: 10px;
+    justify-content: center;
+    margin: 0 0 15px;
 
-
-    h1, h2, p {
-        padding: 0 20px;
-        margin: 0 0 20px;
+    & .link-button,
+    .ui-basic-button {
+      margin: 0;
     }
+  }
 
-    & .button {
-        margin: 0 0 15px;
-        padding: 10px 20px;
-        font-size: 16px;
-        cursor: pointer;
-        border: none;
-        background-color: #17c;
-        color: #fff;
-        border-radius: 5px;
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        outline: none;
+  & ul {
+    width: 100%;
+    padding: 0 10px;
+    list-style-type: none;
+
+    & li {
+      position: relative;
+      display: block;
+      width: 100%;
+      margin: 0 0 15px;
+
+      & a {
+        display: block;
         text-decoration: none;
+        color: #888;
+        background: #f9f9f9;
+        border: 1px solid #ddd;
+        transition: filter 0.1s;
+        touch-action: manipulation;
 
-        &.button-disabled {
-            background-color: #ccc;
+        & h5 {
+          margin: 0 0 5px;
         }
+      }
     }
+  }
 
-    & .button:active {
-        filter: brightness(70%);
-    }
-
-    & .row {
-        display: flex;
-        gap: 10px;
-        justify-content: center;
-        margin: 0 0 15px;
-
-        & .button {
-            margin: 0;
-        }
-    }
-
-    & ul {
-        width: 100%;
-        padding: 0 10px;
-        list-style-type: none;
-
-        & li {
-            position: relative;
-            display: block;
-            width: 100%;
-            margin: 0 0 15px;
-
-            & a {
-                display: block;
-                text-decoration: none;
-                color: #888;
-                background: #f9f9f9;
-                border: 1px solid #ddd;
-                transition: filter 0.1s;
-                touch-action: manipulation;
-
-                & h5 {
-                    margin: 0 0 5px;
-                }
-            }
-        }
-    }
-
-    .last-child {
-        margin-bottom: 0;
-    }
+  .last-child {
+    margin-bottom: 0;
+  }
 }
 
 @keyframes shimmer {
-    0% {
-        left: -200%;
-    }
-    100% {
-        left: 200%;
-    }
+  0% {
+    left: -200%;
+  }
+  100% {
+    left: 200%;
+  }
 }
