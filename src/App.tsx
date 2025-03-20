@@ -1,6 +1,6 @@
 import { scan } from "react-scan";
 import { useState, useMemo, useEffect } from "react";
-import "./style.css";
+import "./app.css";
 import { Outlet, useParams, createBrowserRouter, RouterProvider } from "react-router-dom";
 import { TransitionProvider, TransitioningLink } from "./feature/page-transition.tsx";
 import { ImageCacheProvider, useImageCache } from "./feature/image-cache.tsx";
@@ -11,8 +11,10 @@ import { fakeFetchProducts, emptyProduct, Product } from "./service/product-serv
 import { ResizingElement } from "./feature/resizing-element/resizing-element.tsx";
 import { usePageTransitionState } from "./feature/page-transition.tsx";
 import { useDeeplinkHistoryStack } from "./feature/deeplink-history-stack.ts";
+import console from "./feature/console.ts";
 
 scan({ enabled: false });
+window.console = console;
 
 const Layout = () => {
   useDeeplinkHistoryStack();

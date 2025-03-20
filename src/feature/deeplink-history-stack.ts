@@ -14,24 +14,22 @@ const PAGE_CONFIG: PageConfig[] = [
 
 const handleDirectEntry = async (currentPath: string, navigate: any) => {
   const currentPage = PAGE_CONFIG.find((page) => matchPath(page.path, currentPath));
-  if (!currentPage) return;
+  if (!currentPage) {
+    console.demo(`Deeplink-History-Stack`, `ERROR - Current page not found in PAGE_CONFIG`);
+    return;
+  }
 
   const previousPages = PAGE_CONFIG.filter((page) => page.order < currentPage.order);
   const originalPath = currentPath;
 
   for (const page of previousPages) {
     await navigate(page.path);
-    // i want the "[Feature Deeplink-History-Stack]" to be highlighted in the console in #aa00ff
-    //console.log(`\x1b[38;2;170;0;255m[Feature Deeplink-History-Stack]\x1b[0m add location ${page.path}`);
-
-    console.log(
-      `%c[Feature Deeplink-History-Stack] %cadd location ${page.path}`,
-      "color: #ff00ff;",
-      "color: #aa00ff; font-weight: bold",
-    );
+    console.demo(`Deeplink-History-Stack`, `prepend location ${page.path}`);
   }
 
   await navigate(originalPath);
+
+  console.demo(`Deeplink-History-Stack`, `Done - History stack has been built`, previousPages);
 };
 
 export const useDeeplinkHistoryStack = () => {
@@ -39,13 +37,11 @@ export const useDeeplinkHistoryStack = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const isDirectEntry = !document.referrer;
+    const isDirectEntry = history.state.idx === 0;
 
     if (!isDirectEntry) return;
 
-    console.log(
-      "[Feature Deeplink-History-Stack] Deeplink-Entry detected - building history stack so you can navigate back",
-    );
+    console.demo(`Deeplink-History-Stack`, `Begin - Deeplink-Entry detected: building history stack`);
 
     handleDirectEntry(location.pathname, navigate);
   }, []);

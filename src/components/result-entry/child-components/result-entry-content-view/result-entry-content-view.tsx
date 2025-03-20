@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import { Image } from "../../feature/image/image.tsx";
+import { Image } from "../../../../feature/image/image";
 import "./result-entry-content-view.css";
 
 export type ResultEntryContentViewProps = {
