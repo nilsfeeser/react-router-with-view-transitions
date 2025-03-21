@@ -141,7 +141,7 @@ const useDragToDismiss = (
     )
       return;
 
-    const settings = { ...{ dismissDistance: 200, elasticDrag: false }, ...options };
+    const settings = { ...{ dismissDistance: 80, elasticDrag: false }, ...options };
 
     const componentElement: HTMLDivElement = componentElementRef.current;
     const contentElement: HTMLDivElement = contentElementRef.current;
